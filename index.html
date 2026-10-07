@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RECORD TRUY THU MONTHLY</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    body { 
+      background-color: #0b0c10 !important; 
+      padding: 20px; 
+      color: #e0e6ed !important; 
+    }
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header h1 { font-size: 22px; font-weight: 700; color: #ffffff !important; text-transform: uppercase; }
+    .header p { font-size: 13px; color: #8a99ad !important; margin-top: 4px; }
+
+    .month-select-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #12151e;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #1f2430;
+    }
+
+    .month-select-label {
+      font-size: 13px;
+      color: #8a99ad;
+      font-weight: 600;
+    }
+
+    select.month-select {
+      background: #1f2430;
+      color: #ffffff;
+      border: 1px solid #3b82f6;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card { 
+      background: #12151e !important; 
+      padding: 16px; 
+      border-radius: 10px; 
+      border-left: 4px solid #3b82f6; 
+      border-top: 1px solid #1f2430;
+      border-right: 1px solid #1f2430;
+      border-bottom: 1px solid #1f2430;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5); 
+    }
+    .kpi-card.teal { border-left-color: #06b6d4; }
+    .kpi-card.green { border-left-color: #10b981; }
+    .kpi-card.purple { border-left-color: #8b5cf6; }
+    .kpi-card.orange { border-left-color: #f59e0b; }
+
+    .kpi-title { font-size: 11px; font-weight: 700; color: #8a99ad !important; text-transform: uppercase; }
+    .kpi-value { font-size: 22px; font-weight: 700; color: #ffffff !important; margin-top: 8px; }
+
+    /* Main Grid */
+    .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media (max-width: 768px) {
+      body { padding: 12px; }
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .card-box { 
+      background: #12151e !important; 
+      border: 1px solid #1f2430 !important;
+      border-radius: 12px; 
+      padding: 20px; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5); 
+    }
+    .card-title { font-size: 15px; font-weight: 600; color: #ffffff !important; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* Table */
+    .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; min-width: 500px; }
+    th { text-align: left; font-size: 11px; color: #8a99ad !important; padding: 10px 8px; border-bottom: 2px solid #1f2430 !important; text-transform: uppercase; }
+    td { font-size: 13px; padding: 12px 8px; border-bottom: 1px solid #1f2430 !important; color: #e0e6ed !important; }
+    
+    /* Badge trạng thái */
+    .badge { background: #123326 !important; color: #3fb950 !important; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="header-container">
+    <div class="header">
+      <h1>RECORD TRUY THU MONTHLY</h1>
+      <p>Cập nhật số liệu vận hành mới nhất</p>
+    </div>
+    <div class="month-select-container">
+      <span class="month-select-label">KỲ BÁO CÁO:</span>
+      <select id="monthSelect" class="month-select" onchange="switchMonth(this.value)">
+        <option value="thang9" selected>Tháng 9/2026</option>
+        <option value="thang8">Tháng 8/2026</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-title">TỔNG ĐƠN LOST</div>
+      <div class="kpi-value" id="kpiLost">440 <span style="font-size:14px; font-weight:normal; color:#8a99ad">đơn</span></div>
+    </div>
+    <div class="kpi-card teal">
+      <div class="kpi-title">TỔNG COGS</div>
+      <div class="kpi-value" id="kpiCogs">65,419,654</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-title">TỔNG ĐỀN</div>
+      <div class="kpi-value" id="kpiDen">65,284,661</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-title">TỶ LỆ ĐỀN</div>
+      <div class="kpi-value" id="kpiTyLe">100%</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-title">MOM</div>
+      <div class="kpi-value" id="kpiMom" style="color: #10b981 !important;">▼ 67%</div>
+    </div>
+  </div>
+
+  <!-- HÀNG 1: TOP 5 LỖI & SO SÁNH OB VS FD -->
+  <div class="main-grid">
+    <div class="card-box">
+      <div class="card-title">Top 5 Lỗi Phổ Biến</div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>LÝ DO</th>
+              <th>SỐ ĐƠN</th>
+              <th>TỔNG ĐỀN</th>
+              <th>TRẠNG THÁI</th>
+            </tr>
+          </thead>
+          <tbody id="top5TableBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-box">
+      <div class="card-title">
+        <span>So Sánh Tỷ Lệ Đền (OB vs FD)</span>
+        <span id="obFdTag" style="font-size: 11px; background: #1f2430; color: #8a99ad; padding: 3px 8px; border-radius: 4px; font-weight: normal;">Tháng 9</span>
+      </div>
+      <div style="height: 220px; position: relative;">
+        <canvas id="obFdChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- HÀNG 2: XU HƯỚNG & GHI CHÚ VẬN HÀNH -->
+  <div class="main-grid">
+    <div class="card-box">
+      <div class="card-title">Xu Hướng Đền Bù Theo Tháng</div>
+      <div style="height: 200px; position: relative;">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card-box" style="display: flex; flex-direction: column; justify-content: space-between;">
+      <div class="card-title">Ghi Chú Vận Hành & Đề Xuất</div>
+      
+      <div style="background: #132238; border-left: 4px solid #1e62d0; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+        <p style="font-size: 13px; font-weight: 600; color: #8dbbf8; margin-bottom: 6px;">📌 Đánh giá chính:</p>
+        <ul id="danhGiaList" style="margin: 0; padding-left: 18px; font-size: 12px; color: #90cdf4; line-height: 1.6;">
+          <!-- Rendered via JS -->
+        </ul>
+      </div>
+
+      <div style="background: #2b171c; border-left: 4px solid #d9383a; padding: 12px; border-radius: 6px;">
+        <p style="font-size: 13px; font-weight: 600; color: #f89d9e; margin-bottom: 6px;">⚡ Đề xuất cải thiện:</p>
+        <ul id="deXuatList" style="margin: 0; padding-left: 18px; font-size: 12px; color: #feb2b2; line-height: 1.6;">
+          <!-- Rendered via JS -->
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- HÀNG 3: BẢNG KẾ HOẠCH HÀNH ĐỘNG -->
+  <div class="card-box" style="width: 100%;">
+    <div class="card-title">
+      <span>🎯 KẾ HOẠCH HÀNH ĐỘNG & TỐI ƯU SLA VẬN HÀNH (SLA ACTION PLAN)</span>
+      <span id="slaTag" style="font-size: 11px; background: #1f2430; color: #38bdf8; padding: 4px 10px; border-radius: 12px; font-weight: 600;">Kỳ Tháng 9</span>
+    </div>
+    
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr style="background-color: transparent;">
+            <th>ISSUE</th>
+            <th>ROOT CAUSE</th>
+            <th>ACTION PLAN</th>
+            <th style="text-align: center;">SLA MỤC TIÊU</th>
+            <th style="text-align: center;">TEAM CHỊU TRÁCH NHIỆM</th>
+          </tr>
+        </thead>
+        <tbody id="slaTableBody">
+          <!-- Rendered via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+  const monthlyData = {
+    thang9: {
+      kpi: {
+        lost: "440",
+        cogs: "65,419,654",
+        den: "65,284,661",
+        tyle: "100%",
+        mom: "▼ 67%",
+        momColor: "#10b981"
+      },
+      top5: [
+        { stt: "Top 1", lyDo: "Quá hạn tại Hub/SOC", soDon: "342 Đơn", tongDen: "52,345,175", status: "Truy thu" },
+        { stt: "Top 2", lyDo: "Đơn hàng tranh chấp đối soát", soDon: "81 Đơn", tongDen: "9,106,809", status: "Truy thu" },
+        { stt: "Top 3", lyDo: "2 Bill", soDon: "12 Đơn", tongDen: "2,937,177", status: "Truy thu" },
+        { stt: "Top 4", lyDo: "Quá hạn xử lý", soDon: "4 Đơn", tongDen: "721,000", status: "Truy thu" },
+        { stt: "Top 5", lyDo: "Rỗng ruột", soDon: "1 Đơn", tongDen: "175,000", status: "Truy thu" }
+      ],
+      obFd: {
+        tag: "Tháng 9",
+        data: [23.24, 42.04] // Tr VNĐ
+      },
+      danhGia: [
+        "Lỗi <b>Quá hạn tại Hub/SOC</b> vẫn chiếm tỷ trọng đến <b>80%</b> tổng tiền đền tháng 9 mặc dù đã có cải thiện giảm 2.5% so với tháng 8.",
+        "Bộ phận <b>FD (Fail Delivery)</b> chiếm <b>64%</b> tổng số tiền đền bù.",
+        "Lỗi quá hạn Hub/SOC đến từ việc <b>layout khuất tại kho E</b> gây khó khăn trong quá trình tìm kiếm backlog."
+      ],
+      deXuat: [
+        "Tăng cường <b>CCTV tại Block E</b> kèm theo sát và điều chỉnh layout vận hành tại dock xuất.",
+        "Rà soát lại quy trình xử lý đơn tồn > 12h khu vực kho E để tránh phát sinh backlog quá hạn."
+      ],
+      slaPlan: [
+        {
+          issue: "Kiểm soát Backlog daily tại Kho E",
+          cause: "Layout bị khuất tại Block E gây khó tìm kiếm đơn tồn.",
+          action: "Tăng cường CCTV ở Block E, điều chỉnh layout dock xuất và push thông tin backlog > 12h daily cho nhân viên.",
+          sla: "",
+          team: "",
+          color: "#ef4444"
+        },
+        {
+          issue: "Giảm đền bù bộ phận FD",
+          cause: "Bộ phận FD chiếm 64% tổng tiền đền bù.",
+          action: "Tăng cường kiểm soát SLA và có biện pháp xử lý đối với các đơn hàng Return và hàng sai tuyến từ SOC khác về. Cần có report tồn động, năng suất xử lý trong ca và action plan daily tránh quá hạn",
+          sla: "< 12h",
+          team: "FD Ops Lead",
+          color: "#f43f5e"
+        },
+        {
+          issue: "Đối Soát Đơn Tranh Chấp",
+          cause: "Đơn tranh chấp đối soát chiếm Top 2 (9.1 Tr VNĐ).",
+          action: "Lỗi thao tác khuất cam và thao tác sai quy trình, nguyên nhân chính do lỗi con người .Cần có buổi họp team và training các nhân viên mới và nhắc nhở các nhân viên cũ về quy trình vận hành và thao tác ,thông báo các lỗi sai nghiêm trọng đang ảnh hưởng đến lost rate. Team CCTV cần ra vận hành dán băng keo vàng đen ở các khu vực khuất cam để cảnh báo đến nhân viên thao tác.",
+          sla: "100% Chốt Đúng SLA",
+          team: "Team Lead/Pfm",
+          color: "#8b5cf6"
+        },
+        {
+          
+        }
+      ]
+    },
+    thang8: {
+      kpi: {
+        lost: "671",
+        cogs: "97,712,537",
+        den: "97,510,703",
+        tyle: "100%",
+        mom: "▲ 116%",
+        momColor: "#f59e0b"
+      },
+      top5: [
+        { stt: "Top 1", lyDo: "Quá hạn tại Hub/SOC", soDon: "463 Đơn", tongDen: "66,353,743", status: "Truy thu" },
+        { stt: "Top 2", lyDo: "Lỗi cache không được xử lý", soDon: "75 Đơn", tongDen: "14,178,705", status: "Truy thu" },
+        { stt: "Top 3", lyDo: "Đơn hàng tranh chấp đối soát", soDon: "114 Đơn", tongDen: "13,909,704", status: "Truy thu" },
+        { stt: "Top 4", lyDo: "2 Bill", soDon: "15 Đơn", tongDen: "2,659,057", status: "Truy thu" },
+        { stt: "Top 5", lyDo: "Rỗng ruột", soDon: "4 Đơn", tongDen: "409,494", status: "Truy thu" }
+      ],
+      obFd: {
+        tag: "Tháng 8",
+        data: [24.7, 72.7] // Tr VNĐ
+      },
+      danhGia: [
+        "Lỗi <b>Quá hạn tại Hub/SOC</b> chiếm tỷ trọng đến (<b>82.5%</b> tổng tiền đền).",
+        "Bộ phận <b>First Delivery (FD)</b> phát sinh đền bù cao gấp 2.6 lần so với OB."
+      ],
+      deXuat: [
+        "Tăng cường kiểm soát SLA tại khu vực task FD.",
+        "Tìm ra nguyên nhân chi tiết dẫn đến các đơn tranh chấp dẫn đến đền bù 100%."
+      ],
+      slaPlan: [
+        {
+          issue: "Kiểm soát Backlog daily",
+          cause: "Đơn tồn quá hạn quét xuất.",
+          action: "Kiểm tra backlog tồn đọng > 12h trên hệ thống; Push thông tin lên gr cho các nhân viên thao tác nắm đảm bảo Fifo.",
+          sla: "< 24h",
+          team: "Ops Pfm",
+          color: "#ef4444"
+        },
+        {
+          issue: "Đối Soát",
+          cause: "Đơn tranh chấp bị đền 100%.",
+          action: "Tìm ra nguyên nhân chính dẫn đến các đơn tranh chấp thua và chốt đền.",
+          sla: "---",
+          team: "Người phụ trách Đối Soát",
+          color: "#8b5cf6"
+        }
+      ]
+    }
+  };
+
+  let obFdChartInstance = null;
+  let trendChartInstance = null;
+
+  function initCharts() {
+    // Biểu đồ OB vs FD
+    const ctxObFd = document.getElementById('obFdChart').getContext('2d');
+    obFdChartInstance = new Chart(ctxObFd, {
+      type: 'bar',
+      data: {
+        labels: ['Outbound (OB)', 'First Delivery (FD)'],
+        datasets: [{
+          data: monthlyData.thang9.obFd.data,
+          backgroundColor: ['#3b82f6', '#f43f5e'],
+          borderRadius: 6,
+          barThickness: 20
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: '#1f2430' },
+            ticks: {
+              color: '#8a99ad',
+              callback: function(val) { return val + ' Tr'; }
+            }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: '#8a99ad' }
+          }
+        }
+      }
+    });
+
+    // Biểu đồ Xu hướng Đền bù Theo Tháng (T5 -> T9)
+    const ctxTrend = document.getElementById('trendChart').getContext('2d');
+    trendChartInstance = new Chart(ctxTrend, {
+      type: 'line',
+      data: {
+        labels: ['Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9'],
+        datasets: [{
+          label: 'Tổng đền (Tr VNĐ)',
+          data: [35, 42, 42, 88.9, 65.3],
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          pointBackgroundColor: ['#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6', '#10b981'],
+          pointRadius: [4, 4, 4, 4, 6],
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            grid: { color: '#1f2430' },
+            ticks: { color: '#8a99ad' },
+            beginAtZero: true
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#8a99ad' }
+          }
+        }
+      }
+    });
+  }
+
+  function switchMonth(monthKey) {
+    const data = monthlyData[monthKey];
+    if (!data) return;
+
+    // 1. Update KPI
+    document.getElementById('kpiLost').innerHTML = `${data.kpi.lost} <span style="font-size:14px; font-weight:normal; color:#8a99ad">đơn</span>`;
+    document.getElementById('kpiCogs').innerText = data.kpi.cogs;
+    document.getElementById('kpiDen').innerText = data.kpi.den;
+    document.getElementById('kpiTyLe').innerText = data.kpi.tyle;
+    
+    const kpiMomEl = document.getElementById('kpiMom');
+    kpiMomEl.innerText = data.kpi.mom;
+    kpiMomEl.style.color = data.kpi.momColor + " !important";
+
+    // 2. Update Top 5 Table
+    const top5Body = document.getElementById('top5TableBody');
+    top5Body.innerHTML = data.top5.map(item => `
+      <tr>
+        <td>${item.stt}</td>
+        <td>${item.lyDo}</td>
+        <td>${item.soDon}</td>
+        <td>${item.tongDen}</td>
+        <td><span class="badge">${item.status}</span></td>
+      </tr>
+    `).join('');
+
+    // 3. Update OB vs FD Chart & Tag
+    document.getElementById('obFdTag').innerText = data.obFd.tag;
+    if (obFdChartInstance) {
+      obFdChartInstance.data.datasets[0].data = data.obFd.data;
+      obFdChartInstance.update();
+    }
+
+    // 4. Update Ghi chú & Đề xuất
+    document.getElementById('danhGiaList').innerHTML = data.danhGia.map(str => `<li>${str}</li>`).join('');
+    document.getElementById('deXuatList').innerHTML = data.deXuat.map(str => `<li>${str}</li>`).join('');
+
+    // 5. Update SLA Action Plan
+    document.getElementById('slaTag').innerText = `Kỳ ${data.obFd.tag}`;
+    const slaBody = document.getElementById('slaTableBody');
+    slaBody.innerHTML = data.slaPlan.map(item => `
+      <tr>
+        <td style="font-weight: 600; color: #e0e6ed;">
+          <span style="display: inline-block; width: 8px; height: 8px; background: ${item.color}; border-radius: 50%; margin-right: 6px;"></span> ${item.issue}
+        </td>
+        <td>${item.cause}</td>
+        <td>${item.action}</td>
+        <td style="text-align: center;"><span style="background: #1f2430; color: #e0e6ed; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${item.sla}</span></td>
+        <td style="text-align: center; font-weight: 600; color: #60a5fa;">${item.team}</td>
+      </tr>
+    `).join('');
+
+    // 6. Highlight active point in trend chart
+    if (trendChartInstance) {
+      if (monthKey === 'thang9') {
+        trendChartInstance.data.datasets[0].pointRadius = [4, 4, 4, 4, 7];
+        trendChartInstance.data.datasets[0].pointBackgroundColor = ['#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6', '#10b981'];
+      } else {
+        trendChartInstance.data.datasets[0].pointRadius = [4, 4, 4, 7, 4];
+        trendChartInstance.data.datasets[0].pointBackgroundColor = ['#3b82f6', '#3b82f6', '#3b82f6', '#f59e0b', '#3b82f6'];
+      }
+      trendChartInstance.update();
+    }
+  }
+
+  // Init on load
+  window.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    switchMonth('thang9');
+  });
+</script>
+</body>
+</html>
